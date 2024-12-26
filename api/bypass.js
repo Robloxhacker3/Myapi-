@@ -1,77 +1,45 @@
 const axios = require('axios');
 
-// Helper function to handle the request and measure time taken
+// Helper function to fetch the bypassed link from the external API
 async function fetchBypassedLink(url) {
     const apiUrl = `https://ethos.kys.gay/api/free/bypass?url=${encodeURIComponent(url)}`;
     
-    // Retry logic for better resilience in case of failure
-    let retries = 3;
-    while (retries > 0) {
-        try {
-            // Start the timer before making the request
-            const startTime = Date.now();
+    try {
+        console.log(`Requesting bypass API with URL: ${apiUrl}`);
 
-            // Log the full URL being requested
-            console.log(`Requesting bypass API with URL: ${apiUrl}`);
+        // Make the GET request to the external bypass API
+        const response = await axios.get(apiUrl);
+        
+        // Log the response from the bypass API for debugging
+        console.log("Bypass API response:", response.data);
 
-            // Make the GET request to the bypass API
-            const response = await axios.get(apiUrl);
-            
-            // Log the response from the bypass API
-            console.log("Bypass API response:", response.data);
-
-            // Stop the timer once the response is received
-            const endTime = Date.now();
-
-            // Calculate the time taken to fetch the bypassed link
-            const timeTakenInSeconds = (endTime - startTime) / 1000; // Time in seconds
-
-            // Return both the bypassed link and the time taken
-            return { bypassedLink: response.data, timeTakenInSeconds };
-        } catch (error) {
-            // Log the error if the request fails
-            console.error(`Attempt failed. Retries left: ${retries - 1}`);
-            console.error("Error during bypass request:", error.message);
-
-            // Reduce the retry count
-            retries--;
-
-            // If retries are exhausted, throw the error
-            if (retries === 0) {
-                throw new Error("Failed to bypass the link after multiple attempts. Please try again later.");
-            }
-        }
+        // Return the bypassed link from the response
+        return response.data;
+    } catch (error) {
+        console.error("Error during bypass request:", error.message);
+        throw new Error("Failed to bypass the link. Please try again later.");
     }
 }
 
 module.exports = async (req, res) => {
     try {
-        // Extract the URL from the query parameters
         const { url } = req.query;
 
-        // Check if the URL is provided
+        // Check if the URL parameter is provided
         if (!url) {
-            return res.status(400).send("Error: URL is required. Please provide a valid URL to bypass.");
+            return res.status(400).send("Error: URL is required. Please provide a valid URL.");
         }
 
-        // Log the received URL for debugging
         console.log(`Received request to bypass URL: ${url}`);
 
-        // Fetch the bypassed link and measure the time taken
-        const { bypassedLink, timeTakenInSeconds } = await fetchBypassedLink(url);
+        // Fetch the bypassed link from the external API
+        const bypassedLink = await fetchBypassedLink(url);
 
-        // Log the successful completion of the request with the time taken
-        console.log(`Bypass successful. Time taken: ${timeTakenInSeconds.toFixed(2)} seconds`);
-
-        // Send a response with the bypassed link and time taken
-        res.status(200).send(
-            `Here's your bypassed link: ${bypassedLink}\nTime taken: ${timeTakenInSeconds.toFixed(2)} seconds`
-        );
+        // Send back the bypassed link in the response
+        res.status(200).send(`Here's your bypassed link: ${bypassedLink}`);
     } catch (error) {
-        // Log the error and send a user-friendly message back
+        // Log the error and send a user-friendly error message back
         console.error("Error bypassing the link:", error.message);
-
-        // Send an error response with detailed error message
         res.status(500).send(`An error occurred while bypassing the link. ${error.message}`);
     }
 };
