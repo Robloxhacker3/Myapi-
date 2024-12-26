@@ -1,8 +1,7 @@
 const axios = require('axios');
 
-// Helper function to handle the request and measure the time taken
+// Helper function to handle the request and measure time taken
 async function fetchBypassedLink(url) {
-    // The API endpoint for bypassing the URL
     const apiUrl = `https://ethos.kys.gay/api/free/bypass?url=${encodeURIComponent(url)}`;
     
     // Retry logic for better resilience in case of failure
@@ -12,9 +11,15 @@ async function fetchBypassedLink(url) {
             // Start the timer before making the request
             const startTime = Date.now();
 
+            // Log the full URL being requested
+            console.log(`Requesting bypass API with URL: ${apiUrl}`);
+
             // Make the GET request to the bypass API
             const response = await axios.get(apiUrl);
             
+            // Log the response from the bypass API
+            console.log("Bypass API response:", response.data);
+
             // Stop the timer once the response is received
             const endTime = Date.now();
 
